@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>TabScraper</title>
+    <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+<div class="container">
+    <fieldset>
+        <legend>Filter Tabs</legend>
+        <label for="prefix">Prefix
+            <input type="text" id="prefix" placeholder="e.g. https://" autocomplete="off" aria-label="Prefix" />
+        </label>
+        <label for="suffix">Suffix
+            <input type="text" id="suffix" placeholder="e.g. .png" autocomplete="off" aria-label="Suffix" />
+        </label>
+        <label for="regex">Regex
+            <input type="text" id="regex" placeholder="e.g. \.com$" autocomplete="off" aria-label="Regex" />
+        </label>
+    </fieldset>
+    <button id="scrape">Scrape Tabs</button>
+</div>
+<script src="../dist/popup.js"></script>
+</body>
+</html>
