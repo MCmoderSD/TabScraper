@@ -5,8 +5,6 @@
 ## Description
 **TabScraper** is a lightweight Chrome extension that lets you export URLs of all your currently open browser tabs into a downloadable text file. You can filter the tabs by prefix, suffix, or regex to customize which URLs get saved.
 
----
-
 ## Features
 
 - Export all open tab URLs with one click.
@@ -14,8 +12,6 @@
 - Save your filter preferences locally for convenience.
 - Privacy-first: all data processing happens locally in your browser.
 - Dark mode and modern UI with rounded corners.
-
----
 
 ## Installation
 
@@ -44,8 +40,6 @@
 - Enable Developer mode (top right)
 - Click Load unpacked and select the `dist` folder inside your project
 
----
-
 ## Usage
 1. Click the TabScraper icon in the Chrome toolbar.
 2. Set your filters (prefix, suffix, regex) as desired.
@@ -59,12 +53,8 @@
 - **downloads:** To save the scraped URLs as a text file.
 - **storage:** To save your filter settings locally.
 
----
-
 ## Privacy
 TabScraper does not collect or transmit any data. All operations are performed locally in your browser.
-
----
 
 ## Contributing
 Contributions and suggestions are welcome! Feel free to open issues or pull requests.
