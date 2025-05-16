@@ -1,33 +1,39 @@
-// noinspection JSIgnoredPromiseFromCall
-
 chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.action === "scrape") scrapeTabs();
+    if (msg.action === "scrape") void scrapeTabs();
 });
 
-async function scrapeTabs() {
-    const { prefix = "", suffix = "", regex = "" } = await chrome.storage.sync.get([
+async function scrapeTabs(): Promise<void> {
+
+    // Get prefix, suffix, and regex from storage
+    const { prefix = "", suffix = "", regex = "", invert = false }: { prefix: string, suffix: string, regex: string, invert: boolean } = await chrome.storage.sync.get([
         "prefix",
         "suffix",
-        "regex"
+        "regex",
+        "invert"
     ]);
 
-    const pattern = regex ? new RegExp(regex) : null;
-    const tabs = await chrome.tabs.query({});
+    const pattern: RegExp | null = regex ? new RegExp(regex) : null;
+    const tabs: chrome.tabs.Tab[] = await chrome.tabs.query({});
 
-    const urls = tabs
+    // Filter tabs based on prefix, suffix, and regex
+    const urls: string[] = tabs
         .map(tab => tab.url ?? "")
         .filter(url => {
-            if (prefix && !url.startsWith(prefix)) return false;
-            if (suffix && !url.endsWith(suffix)) return false;
-            return !(pattern && !pattern.test(url));
-
+            if (url === "") return false;                                                           // skip empty URLs
+            if (prefix && invert ? url.startsWith(prefix) : !url.startsWith(prefix)) return false;  // check prefix
+            if (suffix && invert ? url.endsWith(suffix) : !url.endsWith(prefix)) return invert;     // check suffix
+            return invert ? pattern && !pattern!.test(url) : pattern && pattern!.test(url);         // check regex
         });
 
-    const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(urls.join("\n"));
+    // If no URLs match, show an alert
+    if (urls.length === 0) {
+        alert("No URLs matched the criteria.");
+        return;
+    }
 
+    // Download the URLs as a text file
     await chrome.downloads.download({
-        url: dataUrl,
-        filename: "tabs.txt",
+        url: `data:text/plain;charset=utf-8,${encodeURIComponent(urls.join("\n"))}`,
         saveAs: true
     });
 }
