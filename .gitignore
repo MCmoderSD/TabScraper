@@ -3,3 +3,7 @@
 
 ### Node modules ###
 node_modules/
+
+### Build output ###
+TabScraper.crx
+TabScraper.pem

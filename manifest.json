@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tab Scraper",
   "version": "1.0.1",
-  "description": "This lightweight Chrome extension lets you export URLs of all your currently open browser tabs into a downloadable text file. You can filter the tabs by prefix, suffix, or regex to customize which URLs get saved.",
+  "description": "A Chrome extension to scrape all urls from open tabs and download them as a text file.",
   "permissions": ["tabs", "downloads", "storage"],
   "background": {
     "service_worker": "dist/background.js"
