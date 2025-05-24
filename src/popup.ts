@@ -22,9 +22,14 @@ document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
             regex: regexInput.value,
             invert: invertInput.checked
         });
-
         // Send message to background
+        console.log(`${prefixInput.value} - ${suffixInput.value}`);
         await chrome.runtime.sendMessage({action: "scrape"});
-        window.close(); // close popup
     });
+
+    // chrome.runtime.onMessage.addListener((msg) => {
+    //     if (msg.action === "noUrlsFound") {
+    //         alert("No URLs matched the criteria.");
+    //     }
+    // });
 });
