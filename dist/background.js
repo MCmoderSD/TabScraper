@@ -29,12 +29,21 @@ function scrapeTabs() {
             .filter(url => {
             if (url === "")
                 return false; // skip empty URLs
-            if (prefix && invert ? url.startsWith(prefix) : !url.startsWith(prefix))
-                return false; // check prefix
-            if (suffix && invert ? url.endsWith(suffix) : !url.endsWith(prefix))
-                return invert; // check suffix
-            return invert ? pattern && !pattern.test(url) : pattern && pattern.test(url); // check regex
+            const match = isMatch(url); // check if URL matches the criteria
+            return invert ? !match : match; // invert the match if invert is true
         });
+        function isMatch(url) {
+            const checks = [];
+            if (prefix)
+                checks.push(url.startsWith(prefix));
+            if (suffix)
+                checks.push(url.endsWith(suffix));
+            if (pattern)
+                checks.push(pattern.test(url));
+            if (checks.length === 0)
+                return true;
+            return checks.every(Boolean);
+        }
         // If no URLs match, show an alert
         if (urls.length === 0) {
             alert("No URLs matched the criteria.");
