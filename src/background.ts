@@ -3,7 +3,6 @@ chrome.runtime.onMessage.addListener((msg) => {
 });
 
 async function scrapeTabs(): Promise<void> {
-
     // Get prefix, suffix, and regex from storage
     const { prefix = "", suffix = "", regex = "", invert = false }: { prefix: string, suffix: string, regex: string, invert: boolean } = await chrome.storage.sync.get([
         "prefix",
@@ -33,9 +32,17 @@ async function scrapeTabs(): Promise<void> {
         return checks.every(Boolean);
     }
 
-    // If no URLs match, show an alert
+    // If no URLs match, show a notification
     if (urls.length === 0) {
-        alert("No URLs matched the criteria.");
+        // await chrome.runtime.sendMessage({ action: "noUrlsFound" });
+        let tab = await chrome.tabs.create({url: "public/error.html"});
+        // let injection = {
+        //     target: { tabId: tab.id ?? -1 },
+        //     func:() => {
+        //         alert("No URLs matched the criteria.");
+        //     }
+        // }
+        // await chrome.scripting.executeScript(injection);
         return;
     }
 
@@ -45,3 +52,7 @@ async function scrapeTabs(): Promise<void> {
         saveAs: true
     });
 }
+
+
+
+
