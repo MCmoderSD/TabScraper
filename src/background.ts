@@ -34,15 +34,7 @@ async function scrapeTabs(): Promise<void> {
 
     // If no URLs match, show a notification
     if (urls.length === 0) {
-        // await chrome.runtime.sendMessage({ action: "noUrlsFound" });
-        let tab = await chrome.tabs.create({url: "public/error.html"});
-        // let injection = {
-        //     target: { tabId: tab.id ?? -1 },
-        //     func:() => {
-        //         alert("No URLs matched the criteria.");
-        //     }
-        // }
-        // await chrome.scripting.executeScript(injection);
+        await chrome.tabs.create({url: "public/html/error.html"});
         return;
     }
 
@@ -52,7 +44,3 @@ async function scrapeTabs(): Promise<void> {
         saveAs: true
     });
 }
-
-
-
-

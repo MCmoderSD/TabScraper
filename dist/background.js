@@ -44,9 +44,9 @@ function scrapeTabs() {
                 return true;
             return checks.every(Boolean);
         }
-        // If no URLs match, show an alert
+        // If no URLs match, show a notification
         if (urls.length === 0) {
-            alert("No URLs matched the criteria.");
+            yield chrome.tabs.create({ url: "public/html/error.html" });
             return;
         }
         // Download the URLs as a text file

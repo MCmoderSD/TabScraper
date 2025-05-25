@@ -1,6 +1,6 @@
 {
   "name": "Tab Scraper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Chrome extension to scrape all urls from open tabs and download them as a text file.",
   "main": "dist/index.js",
   "scripts": {

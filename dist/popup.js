@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, vo
             invert: invertInput.checked
         });
         // Send message to background
+        console.log(`${prefixInput.value} - ${suffixInput.value}`);
         yield chrome.runtime.sendMessage({ action: "scrape" });
-        window.close(); // close popup
     }));
 }));
