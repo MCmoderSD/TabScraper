@@ -8,12 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
+// Listen for messages from the popup
 chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.action === "scrape")
-        void scrapeTabs();
+    if (msg.action === "scrape") void scrapeTabs();
 });
+
+// Scrape Tabs Function
 function scrapeTabs() {
     return __awaiter(this, void 0, void 0, function* () {
+
         // Get prefix, suffix, and regex from storage
         const { prefix = "", suffix = "", regex = "", invert = false } = yield chrome.storage.sync.get([
             "prefix",
@@ -21,34 +25,36 @@ function scrapeTabs() {
             "regex",
             "invert"
         ]);
+
+        // Compile regex if provided
         const pattern = regex ? new RegExp(regex) : null;
         const tabs = yield chrome.tabs.query({});
+
         // Filter tabs based on prefix, suffix, and regex
         const urls = tabs
             .map(tab => { var _a; return (_a = tab.url) !== null && _a !== void 0 ? _a : ""; })
             .filter(url => {
-            if (url === "")
-                return false; // skip empty URLs
+            if (url === "") return false; // skip empty URLs
             const match = isMatch(url); // check if URL matches the criteria
             return invert ? !match : match; // invert the match if invert is true
         });
+
+        // Function to check if a URL matches the criteria
         function isMatch(url) {
             const checks = [];
-            if (prefix)
-                checks.push(url.startsWith(prefix));
-            if (suffix)
-                checks.push(url.endsWith(suffix));
-            if (pattern)
-                checks.push(pattern.test(url));
-            if (checks.length === 0)
-                return true;
+            if (prefix) checks.push(url.startsWith(prefix));
+            if (suffix) checks.push(url.endsWith(suffix));
+            if (pattern) checks.push(pattern.test(url));
+            if (checks.length === 0) return true;
             return checks.every(Boolean);
         }
+
         // If no URLs match, show a notification
         if (urls.length === 0) {
             yield chrome.tabs.create({ url: "public/html/error.html" });
             return;
         }
+
         // Download the URLs as a text file
         yield chrome.downloads.download({
             url: `data:text/plain;charset=utf-8,${encodeURIComponent(urls.join("\n"))}`,

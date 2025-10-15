@@ -16,14 +16,19 @@ document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
 
     // Save + trigger scraping
     button.addEventListener("click", async (): Promise<void> => {
+
+        // Save values
         await chrome.storage.sync.set({
             prefix: prefixInput.value,
             suffix: suffixInput.value,
             regex: regexInput.value,
             invert: invertInput.checked
         });
+
         // Send message to background
         console.log(`${prefixInput.value} - ${suffixInput.value}`);
+
+        // Trigger scraping
         await chrome.runtime.sendMessage({action: "scrape"});
     });
 });

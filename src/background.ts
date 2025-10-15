@@ -1,8 +1,12 @@
+
+// Listen for messages from the popup
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === "scrape") void scrapeTabs();
 });
 
+// Scrape Tabs Function
 async function scrapeTabs(): Promise<void> {
+
     // Get prefix, suffix, and regex from storage
     const { prefix = "", suffix = "", regex = "", invert = false }: { prefix: string, suffix: string, regex: string, invert: boolean } = await chrome.storage.sync.get([
         "prefix",
@@ -11,6 +15,7 @@ async function scrapeTabs(): Promise<void> {
         "invert"
     ]);
 
+    // Compile regex if provided
     const pattern: RegExp | null = regex ? new RegExp(regex) : null;
     const tabs: chrome.tabs.Tab[] = await chrome.tabs.query({});
 
@@ -23,6 +28,7 @@ async function scrapeTabs(): Promise<void> {
             return invert ? !match : match;         // invert the match if invert is true
         });
 
+    // Function to check if a URL matches the criteria
     function isMatch(url: string): boolean {
         const checks: boolean[] = [];
         if (prefix) checks.push(url.startsWith(prefix));
