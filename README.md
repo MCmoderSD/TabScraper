@@ -27,6 +27,15 @@ Ideal for researchers, content creators, or anyone who needs to archive or share
 2. Click **Add to Chrome**, then **Add extension**.
 3. Pin the extension to your toolbar by clicking the puzzle-piece icon and selecting **Tab Scraper**.
 
+### From Release (GitHub)
+1. Go to the Tab Scraper [releases page](https://github.com/MCmoderSD/TabScraper/releases/latest).
+2. Download the latest `TabScraper.zip` file.
+3. Extract the contents to a folder on your computer.
+4. Load into Chrome:
+    * Open `chrome://extensions/` in your browser.
+    * Enable **Developer mode** (toggle in top-right).
+    * Click **Load unpacked**, then select the extracted **TabScraper** folder.
+
 ### From Source (Development)
 
 1. Clone this repository:
