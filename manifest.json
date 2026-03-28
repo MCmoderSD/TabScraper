@@ -4,9 +4,7 @@
   "description": "A Chrome extension to scrape all urls from open tabs and download them as a text file.",
   "version": "1.1.0",
 
-  "permissions": ["tabs", "downloads", "storage", "scripting"],
-  "host_permissions": ["<all_urls>"],
-
+  "permissions": ["tabs", "downloads", "storage", "scripting", "activeTab"],
   "background": {
     "service_worker": "dist/background.js",
     "type": "module"

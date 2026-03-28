@@ -90,6 +90,7 @@ Ideal for researchers, content creators, or anyone who needs to archive or share
 * `downloads`: Generate and save the output file.
 * `storage`: Persist your filter settings.
 * `scripting`: Show alerts if something goes wrong.
+* `activeTab`: Show alerts if something goes wrong on the active tab.
 
 
 ## Privacy & Security
