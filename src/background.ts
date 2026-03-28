@@ -1,52 +1,47 @@
+import { Configuration } from "./config.js";
+import { showAlert, downloadAsTextFile, filterPrefix, filterSuffix, filterRegex } from "./util.js";
+
+import Tab = chrome.tabs.Tab;
 
 // Listen for messages from the popup
-chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.action === "scrape") void scrapeTabs();
+chrome.runtime.onMessage.addListener((data: { action: string, config: Configuration }): void => {
+    console.log("Received message:", data);
+    if (data.action === "scrape") {
+        scrapeTabs(data.config).catch(console.error);
+    }
 });
 
 // Scrape Tabs Function
-async function scrapeTabs(): Promise<void> {
+async function scrapeTabs(config: Configuration): Promise<void> {
 
-    // Get prefix, suffix, and regex from storage
-    const { prefix = "", suffix = "", regex = "", invert = false }: { prefix: string, suffix: string, regex: string, invert: boolean } = await chrome.storage.sync.get([
-        "prefix",
-        "suffix",
-        "regex",
-        "invert"
-    ]);
+    // Query all tabs
+    const tabs: Tab[] = await chrome.tabs.query({})
+    let filteredTabs: Tab[] = tabs;
+    let result: Tab[];
 
-    // Compile regex if provided
-    const pattern: RegExp | null = regex ? new RegExp(regex) : null;
-    const tabs: chrome.tabs.Tab[] = await chrome.tabs.query({});
+    // Apply filters
+    filteredTabs = filterPrefix(config.prefix, filteredTabs);
+    filteredTabs = filterSuffix(config.suffix, filteredTabs);
+    filteredTabs = filterRegex(config.regex, filteredTabs);
 
-    // Filter tabs based on prefix, suffix, and regex
-    const urls: string[] = tabs
-        .map(tab => tab.url ?? "")
-        .filter(url => {
-            if (url === "") return false;           // skip empty URLs
-            const match: boolean = isMatch(url);    // check if URL matches the criteria
-            return invert ? !match : match;         // invert the match if invert is true
-        });
+    // Invert Filter
+    if (config.invert) {
+        const filteredTabIds = new Set(filteredTabs.map(tab => tab.id));
+        result = tabs.filter(tab => !filteredTabIds.has(tab.id));
+    } else result = filteredTabs;
 
-    // Function to check if a URL matches the criteria
-    function isMatch(url: string): boolean {
-        const checks: boolean[] = [];
-        if (prefix) checks.push(url.startsWith(prefix));
-        if (suffix) checks.push(url.endsWith(suffix));
-        if (pattern) checks.push(pattern.test(url));
-        if (checks.length === 0) return true;
-        return checks.every(Boolean);
-    }
+    // Extract URLs
+    const urls: string[] = result.map(tab => tab.url!).filter(url => url !== undefined);
 
-    // If no URLs match, show a notification
-    if (urls.length === 0) {
-        await chrome.tabs.create({url: "public/html/error.html"});
+    // Deduplicate URLs
+    const uniqueUrls: string[] = Array.from(new Set(urls));
+
+    // No URLs Found
+    if (uniqueUrls.length === 0) {
+        await showAlert("No matching tabs found.");
         return;
     }
 
-    // Download the URLs as a text file
-    await chrome.downloads.download({
-        url: `data:text/plain;charset=utf-8,${encodeURIComponent(urls.join("\n"))}`,
-        saveAs: true
-    });
+    // Download URLs as text file
+    await downloadAsTextFile(uniqueUrls);
 }

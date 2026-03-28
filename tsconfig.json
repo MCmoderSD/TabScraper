@@ -1,12 +1,38 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+
+    /* Language */
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+
+    /* Paths */
+    "rootDir": "src",
+    "outDir": "dist",
+
+    /* Type checking */
     "strict": true,
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+
+    /* Interop */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Chrome extension types */
+    "types": ["chrome"],
+
+    /* Quality of life */
     "skipLibCheck": true,
-    "outDir": "dist"
+    "forceConsistentCasingInFileNames": true,
+
+    /* Debugging */
+    "sourceMap": true
   },
   "include": ["src"]
 }

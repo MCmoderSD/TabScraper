@@ -1,9 +1,9 @@
-### Webstorm ###
+# IDE files
 .idea/
 
-### Node modules ###
-node_modules/
+# Build output
+dist/
+TabScraper.zip
 
-### Build output ###
-TabScraper.crx
-TabScraper.pem
+# Node modules
+node_modules/

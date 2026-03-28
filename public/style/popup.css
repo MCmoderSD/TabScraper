@@ -73,7 +73,7 @@ label {
     display: inline-grid;
     place-content: center;
     vertical-align: middle;
-    border: 1.5px solid var(--primary);
+    border: 2px solid var(--primary);
     border-radius: 4px;
     background-color: var(--bg-focus);
     cursor: pointer;

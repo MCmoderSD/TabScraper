@@ -5,7 +5,8 @@
 
 ## Overview
 
-**Tab Scraper** is a lightweight, privacy-first Chrome extension that helps you quickly collect the URLs of all your open tabs and save them as a text file. Ideal for researchers, content creators, or anyone who needs to archive or share multiple links at once.
+**Tab Scraper** is a lightweight, privacy-first Chrome extension that helps you quickly collect the URLs of all your open tabs and save them as a text file.
+Ideal for researchers, content creators, or anyone who needs to archive or share multiple links at once.
 
 
 ## Features
@@ -34,21 +35,24 @@
    git clone https://github.com/MCmoderSD/TabScraper.git
    cd TabScraper
    ```
+
 2. Install dependencies:
 
    ```bash
    npm install
    ```
+
 3. Build the extension:
 
    ```bash
    npm run build
    ```
+
 4. Load into Chrome:
 
    * Open `chrome://extensions/` in your browser.
    * Enable **Developer mode** (toggle in top-right).
-   * Click **Load unpacked**, then select the `dist` folder.
+   * Click **Load unpacked**, then select the **TabScraper** folder.
 
 
 ## Usage
@@ -60,6 +64,7 @@
    * **Suffix**: Only include URLs ending with this string.
    * **Regex**: Match URLs against a custom pattern.
    * **Invert Selection**: Exclude all URLs matching the above.
+
 3. Click **Scrape**.
 4. Save the generated `.txt` file from the Chrome download dialog.
 
@@ -75,12 +80,17 @@
 * `tabs`: Read URLs from open tabs.
 * `downloads`: Generate and save the output file.
 * `storage`: Persist your filter settings.
+* `scripting`: Show alerts if something goes wrong.
 
 
 ## Privacy & Security
 
-Tab Scraper operates entirely within your browser. No URLs or data are sent to any external server. You control what gets saved and shared.
+Tab Scraper operates entirely within your browser.
+No URLs or data are sent to any external server.
+You control what gets saved and shared.
 
 
 ## Contributing
-Contributions and suggestions are welcome! Feel free to open issues or pull requests.
+
+Contributions and suggestions are welcome!
+Feel free to open [issues](https://github.com/MCmoderSD/TabScraper/issues) or pull requests.
