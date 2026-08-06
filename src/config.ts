@@ -1,25 +1,42 @@
+import { describeError } from "./util.js";
+
 export interface Configuration {
-    prefix: string;
-    suffix: string;
-    regex: string;
-    invert: boolean;
+    readonly prefix: string;
+    readonly suffix: string;
+    readonly regex: string;
+    readonly invert: boolean;
 }
 
-export async function fetchConfig(): Promise<Configuration> {
+const DEFAULT_CONFIG: Configuration = {
+    prefix: "",
+    suffix: "",
+    regex: "",
+    invert: false
+};
 
-    // Fetch config from storage
-    const config: Configuration = await chrome.storage.sync.get([
-        "prefix",
-        "suffix",
-        "regex",
-        "invert"
-    ]);
+const CONFIG_KEYS: string[] = ["prefix", "suffix", "regex", "invert"];
 
-    // Set default values if not present
-    if (!config.prefix) config.prefix = "";
-    if (!config.suffix) config.suffix = "";
-    if (!config.regex) config.regex = "";
-    return config;
+function readString(stored: Record<string, unknown>, key: string): string {
+    const value: unknown = stored[key];
+    return typeof value === "string" ? value.trim() : "";
+}
+
+export async function loadConfig(): Promise<Configuration> {
+    let stored: Record<string, unknown>;
+
+    try {
+        stored = await chrome.storage.sync.get(CONFIG_KEYS);
+    } catch (error) {
+        console.warn("Tab Scraper: could not read the saved settings", describeError(error));
+        return DEFAULT_CONFIG;
+    }
+
+    return {
+        prefix: readString(stored, "prefix"),
+        suffix: readString(stored, "suffix"),
+        regex: readString(stored, "regex"),
+        invert: stored["invert"] === true
+    };
 }
 
 export async function saveConfig(config: Configuration): Promise<void> {
@@ -27,6 +44,6 @@ export async function saveConfig(config: Configuration): Promise<void> {
         prefix: config.prefix,
         suffix: config.suffix,
         regex: config.regex,
-        invert: config.invert,
-    })
+        invert: config.invert
+    });
 }

@@ -1,47 +1,93 @@
-import { Configuration, fetchConfig, saveConfig } from "./config.js";
+import { loadConfig, saveConfig, type Configuration } from "./config.js";
+import { compileFilter, selectUrls, type CompiledFilter } from "./filter.js";
+import { describeError, downloadUrls } from "./util.js";
 
-document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
+type StatusKind = "busy" | "success" | "error";
 
-    // HTML Elements
-    const prefixInput = document.getElementById("prefix") as HTMLInputElement;
-    const suffixInput = document.getElementById("suffix") as HTMLInputElement;
-    const regexInput = document.getElementById("regex") as HTMLInputElement;
-    const invertInput = document.getElementById("invert") as HTMLInputElement;
-    const button = document.getElementById("scrape") as HTMLButtonElement;
+function requireElement<T extends HTMLElement>(id: string, type: new () => T): T {
+    const element: HTMLElement | null = document.getElementById(id);
+    if (!(element instanceof type)) throw new Error(`popup.html is missing ${type.name} #${id}`);
+    return element;
+}
 
-    // Apply config values to input fields
-    function applyConfig(config: Configuration): void {
-        prefixInput.value = config.prefix.trim();
-        suffixInput.value = config.suffix.trim();
-        regexInput.value = config.regex.trim();
-        invertInput.checked = config.invert;
+const prefixInput: HTMLInputElement = requireElement("prefix", HTMLInputElement);
+const suffixInput: HTMLInputElement = requireElement("suffix", HTMLInputElement);
+const regexInput: HTMLInputElement = requireElement("regex", HTMLInputElement);
+const invertInput: HTMLInputElement = requireElement("invert", HTMLInputElement);
+const scrapeButton: HTMLButtonElement = requireElement("scrape", HTMLButtonElement);
+const statusOutput: HTMLParagraphElement = requireElement("status", HTMLParagraphElement);
+
+function applyConfig(config: Configuration): void {
+    prefixInput.value = config.prefix;
+    suffixInput.value = config.suffix;
+    regexInput.value = config.regex;
+    invertInput.checked = config.invert;
+}
+
+function gatherConfig(): Configuration {
+    return {
+        prefix: prefixInput.value.trim(),
+        suffix: suffixInput.value.trim(),
+        regex: regexInput.value.trim(),
+        invert: invertInput.checked
+    };
+}
+
+function setStatus(kind: StatusKind, message: string): void {
+    statusOutput.textContent = message;
+    statusOutput.dataset["kind"] = kind;
+}
+
+function clearStatus(): void {
+    statusOutput.textContent = "";
+}
+
+async function scrape(): Promise<void> {
+    const config: Configuration = gatherConfig();
+
+    const filter: CompiledFilter = compileFilter(config);
+    if (!filter.ok) {
+        setStatus("error", filter.error);
+        return;
     }
 
-    // Gather config values from input fields
-    function gatherConfig(): Configuration {
-        return {
-            prefix: prefixInput.value.trim(),
-            suffix: suffixInput.value.trim(),
-            regex: regexInput.value.trim(),
-            invert: invertInput.checked,
-        };
-    }
+    scrapeButton.disabled = true;
+    setStatus("busy", "Scraping tabs…");
 
-    // Load config from storage and apply to inputs
-    let config: Configuration = await fetchConfig();
-    applyConfig(config);
-
-    // Save Config + trigger scraping
-    button.addEventListener("click", async (): Promise<void> => {
-
-        // Update Config
-        config = gatherConfig();
+    try {
         await saveConfig(config);
+    } catch (error) {
+        console.warn("Tab Scraper: could not save the settings", describeError(error));
+    }
 
-        // Trigger scraping
-        await chrome.runtime.sendMessage({
-            action: "scrape",
-            config: config
-        });
-    });
+    try {
+        const tabs: chrome.tabs.Tab[] = await chrome.tabs.query({});
+        const urls: string[] = selectUrls(tabs.map((tab: chrome.tabs.Tab): string | undefined => tab.url), filter.matches);
+
+        if (urls.length === 0) {
+            setStatus("error", "No tabs matched the current filter.");
+            return;
+        }
+
+        await downloadUrls(urls);
+        setStatus("success", `Saved ${urls.length.toString()} ${urls.length === 1 ? "URL" : "URLs"}.`);
+    } catch (error) {
+        setStatus("error", describeError(error));
+    } finally {
+        scrapeButton.disabled = false;
+    }
+}
+
+scrapeButton.addEventListener("click", (): void => {
+    void scrape();
 });
+
+for (const input of [prefixInput, suffixInput, regexInput, invertInput]) {
+    input.addEventListener("input", clearStatus);
+}
+
+loadConfig()
+    .then(applyConfig)
+    .catch((error: unknown): void => {
+        setStatus("error", `Could not load the saved settings: ${describeError(error)}`);
+    });
