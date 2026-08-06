@@ -89,9 +89,13 @@ jobs:
           mkdir -p staging/dist
           cp manifest.json staging/
 
-          # The whole build output ships, not just the service worker: it
-          # imports sibling modules at runtime that the manifest never names.
+          # The whole build output ships, not just the entry module: it imports
+          # sibling modules at runtime that the manifest never names.
           cp dist/*.js staging/dist/
+
+          # The popup page and its stylesheet are loaded by Chrome at runtime
+          # but are not part of the build output, so public/ ships as it is.
+          cp -r public staging/
 
           # Icon list is read from the manifest so it cannot drift out of sync.
           # Paths in this project contain no spaces, so word splitting is safe.
@@ -105,11 +109,22 @@ jobs:
           done
 
           # A package whose entry point is missing would install but never run.
-          SERVICE_WORKER="$(jq -r '.background.service_worker' manifest.json)"
-          if [ ! -f "staging/${SERVICE_WORKER}" ]; then
-            echo "::error::Service worker ${SERVICE_WORKER} is missing from the package"
+          # Both kinds are optional in a manifest, so each is only checked when
+          # it is actually declared.
+          SERVICE_WORKER="$(jq -r '.background.service_worker // empty' manifest.json)"
+          POPUP="$(jq -r '.action.default_popup // empty' manifest.json)"
+
+          if [ -z "$SERVICE_WORKER" ] && [ -z "$POPUP" ]; then
+            echo "::error::manifest.json declares neither a service worker nor a popup"
             exit 1
           fi
+
+          for ENTRY in $SERVICE_WORKER $POPUP; do
+            if [ ! -f "staging/${ENTRY}" ]; then
+              echo "::error::Entry point ${ENTRY} is missing from the package"
+              exit 1
+            fi
+          done
 
           mkdir -p release-assets
           ZIP="${PWD}/release-assets/${ARTIFACT_NAME}.zip"
