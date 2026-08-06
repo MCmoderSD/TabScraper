@@ -1,51 +1,50 @@
 :root {
-    --bg: #0a0c10;
-    --bg-focus: #10131a;
-    --primary: #75b0f1;
-    --text: #fff;
-    --radius: 8px;
-    --shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
+    color-scheme: dark;
 
-html {
-    box-sizing: border-box;
+    --bg: #0a0c10;
+    --bg-sunken: #10131a;
+    --primary: #75b0f1;
+    --text: #ffffff;
+    --muted: #98a1b3;
+    --success: #6ddb92;
+    --danger: #ff8a80;
+
+    --radius: 8px;
+    --shadow: 0 2px 6px rgb(0 0 0 / 30%);
 }
 
 *, *::before, *::after {
-    box-sizing: inherit;
+    box-sizing: border-box;
 }
 
 body {
+    width: 280px;
     margin: 0;
-    font-family: sans-serif;
+    font-family: system-ui, sans-serif;
     background-color: var(--bg);
     color: var(--text);
-    width: 280px;
-    height: auto;
-    border-radius: 12px;
-    overflow: hidden;
 }
 
 .container {
-    padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    padding: 1rem;
 }
 
 fieldset {
+    margin: 0;
+    padding: 0.7rem 0.8rem 1rem;
     border: 1px solid var(--primary);
     border-radius: var(--radius);
-    padding: 0.7rem 0.8rem 1rem 0.8rem;
-    margin: 0;
     box-shadow: var(--shadow);
 }
 
 legend {
-    color: var(--primary);
-    font-weight: bold;
     padding: 0 0.4rem;
+    color: var(--primary);
     font-size: 1.05rem;
+    font-weight: bold;
 }
 
 label {
@@ -56,78 +55,120 @@ label {
     font-size: 0.97rem;
 }
 
+input[type="text"] {
+    padding: 0.5rem;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--bg-sunken);
+    color: var(--text);
+    font: inherit;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+input[type="text"]:focus-visible {
+    border-color: var(--text);
+    background: var(--bg);
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
 .checkbox-row {
     display: flex;
-    align-content: center;
-    height: 1rem;
+    align-items: center;
     gap: 0.5em;
     margin-top: 1rem;
     font-size: 0.97rem;
 }
 
+.checkbox-row label {
+    margin-bottom: 0;
+}
+
 .checkbox-row input[type="checkbox"] {
     appearance: none;
+    display: inline-grid;
+    place-content: center;
     width: 1rem;
     height: 1rem;
     margin: 0;
-    display: inline-grid;
-    place-content: center;
-    vertical-align: middle;
     border: 2px solid var(--primary);
     border-radius: 4px;
-    background-color: var(--bg-focus);
+    background-color: var(--bg-sunken);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
 }
 
 .checkbox-row input[type="checkbox"]::before {
     content: "";
     width: 0.5rem;
     height: 0.5rem;
+    border-radius: 2px;
+    background-color: var(--primary);
     transform: scale(0);
     transition: transform 0.1s ease-in-out;
-    background-color: var(--primary);
-    border-radius: 2px;
 }
 
 .checkbox-row input[type="checkbox"]:checked::before {
     transform: scale(1);
 }
 
-input[type="text"] {
-    background: var(--bg-focus);
-    color: var(--text);
-    border: 1px solid var(--primary);
-    border-radius: var(--radius);
-    padding: 0.5rem;
-    transition: border 0.2s, background 0.2s;
-}
-
-input[type="text"]:focus {
-    border: 2px solid var(--text);
-    background: var(--bg);
-    outline: none;
-}
-
 button {
-    background-color: var(--bg-focus);
-    border: 2px solid var(--primary);
-    color: var(--text);
-    padding: 0.75rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1rem;
-    transition: all 0.2s ease-in-out;
     width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    background-color: var(--bg-sunken);
+    color: var(--text);
     box-shadow: var(--shadow);
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 
-button:hover,
-button:focus {
+button:hover:not(:disabled),
+button:focus-visible {
+    border-color: var(--text);
     background-color: var(--bg);
-    border: 2px solid var(--text);
     color: var(--primary);
     transform: scale(1.03);
     outline: none;
+}
+
+button:disabled {
+    cursor: progress;
+    opacity: 0.6;
+}
+
+.status {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.status:empty {
+    display: none;
+}
+
+.status[data-kind="busy"] {
+    color: var(--muted);
+}
+
+.status[data-kind="success"] {
+    color: var(--success);
+}
+
+.status[data-kind="error"] {
+    color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+    }
+
+    button:hover:not(:disabled),
+    button:focus-visible {
+        transform: none;
+    }
 }

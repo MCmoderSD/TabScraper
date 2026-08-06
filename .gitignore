@@ -3,7 +3,6 @@
 
 # Build output
 dist/
-TabScraper.zip
 
 # Node modules
 node_modules/

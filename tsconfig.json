@@ -1,38 +1,40 @@
 {
   "compilerOptions": {
 
-    /* Language */
-    "target": "ESNext",
-    "lib": ["ESNext", "DOM"],
+    /* Language and environment */
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "types": ["chrome"],
 
     /* Modules */
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "resolveJsonModule": true,
+    "erasableSyntaxOnly": true,
 
     /* Paths */
     "rootDir": "src",
     "outDir": "dist",
+    "sourceMap": true,
 
     /* Type checking */
     "strict": true,
-    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    /* Emit */
     "noEmitOnError": true,
-
-    /* Interop */
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-
-    /* Chrome extension types */
-    "types": ["chrome"],
-
-    /* Quality of life */
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-
-    /* Debugging */
-    "sourceMap": true
+    "skipLibCheck": false,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"]
 }
