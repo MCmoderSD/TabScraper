@@ -16,7 +16,7 @@ permissions:
 
 env:
   NODE_VERSION: "26"
-  ARTIFACT_NAME: AniLink-Skipper
+  ARTIFACT_NAME: TabScraper
 
 jobs:
   release:
