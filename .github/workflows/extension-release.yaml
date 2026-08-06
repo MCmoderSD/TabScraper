@@ -1,0 +1,186 @@
+name: Extension Build & Release
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+env:
+  NODE_VERSION: "26"
+  ARTIFACT_NAME: AniLink-Skipper
+
+jobs:
+  release:
+    name: Build, package and release
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, 'release')
+
+    steps:
+      - id: checkout
+        name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - id: setup-node
+        name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - id: install
+        name: Install dependencies
+        run: npm ci
+
+      - id: build
+        name: Build extension
+        run: npx tsc --sourceMap false
+
+      - id: project
+        name: Resolve extension version
+        run: |
+          VERSION="$(jq -r '.version' manifest.json)"
+          PKG_VERSION="$(jq -r '.version' package.json)"
+
+          # Chrome accepts one to four dot-separated integers.
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+(\.[0-9]+){0,3}$'; then
+            echo "::error::manifest.json version '${VERSION}' is not a valid Chrome extension version"
+            exit 1
+          fi
+
+          # The manifest version is what Chrome ships, package.json must not drift.
+          if [ "$VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Version mismatch: manifest.json=${VERSION}, package.json=${PKG_VERSION}"
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/${VERSION}" > /dev/null; then
+            RELEASE=false
+            echo "::notice::Tag ${VERSION} already exists, skipping release"
+          else
+            RELEASE=true
+          fi
+          echo "release=${RELEASE}" >> "$GITHUB_OUTPUT"
+
+          echo "Resolved version ${VERSION} (GitHub release: ${RELEASE})"
+
+      - id: assets
+        name: Package extension and collect checksums
+        if: steps.project.outputs.release == 'true'
+        run: |
+          # Minimal, ready-to-use bundle: only what Chrome loads at runtime.
+          # manifest.json sits at the archive root so the same file can be
+          # uploaded to the Chrome Web Store as-is.
+          mkdir -p staging/dist
+          cp manifest.json staging/
+
+          # The whole build output ships, not just the service worker: it
+          # imports sibling modules at runtime that the manifest never names.
+          cp dist/*.js staging/dist/
+
+          # Icon list is read from the manifest so it cannot drift out of sync.
+          # Paths in this project contain no spaces, so word splitting is safe.
+          ICONS="$(jq -r '[.icons[]?, .action.default_icon[]?] | unique | .[]' manifest.json)"
+          for ICON in $ICONS; do
+            if [ ! -f "$ICON" ]; then
+              echo "::error::manifest.json references a missing icon: ${ICON}"
+              exit 1
+            fi
+            cp --parents "$ICON" staging/
+          done
+
+          # A package whose entry point is missing would install but never run.
+          SERVICE_WORKER="$(jq -r '.background.service_worker' manifest.json)"
+          if [ ! -f "staging/${SERVICE_WORKER}" ]; then
+            echo "::error::Service worker ${SERVICE_WORKER} is missing from the package"
+            exit 1
+          fi
+
+          mkdir -p release-assets
+          ZIP="${PWD}/release-assets/${ARTIFACT_NAME}.zip"
+          (cd staging && zip -qXr "$ZIP" .)
+
+          if ! unzip -Z1 "$ZIP" | grep -qxE '(\./)?manifest\.json'; then
+            echo "::error::manifest.json missing from the root of the archive"
+            exit 1
+          fi
+
+          {
+            echo "md5=$(md5sum "$ZIP" | cut -d ' ' -f 1)"
+            echo "sha1=$(sha1sum "$ZIP" | cut -d ' ' -f 1)"
+            echo "sha256=$(sha256sum "$ZIP" | cut -d ' ' -f 1)"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Archive contents:"
+          unzip -l "$ZIP"
+
+      - id: attest
+        name: Attest build provenance
+        if: steps.project.outputs.release == 'true'
+        uses: actions/attest@v4
+        with:
+          subject-path: release-assets/*.zip
+
+      - id: changelog
+        name: Build changelog link
+        if: steps.project.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.project.outputs.version }}
+        run: |
+          PREVIOUS="$(git tag --sort=-creatordate | grep -vFx "$VERSION" | head -n 1 || true)"
+
+          if [ -z "$PREVIOUS" ]; then
+            echo "No previous tag found, linking full commit history"
+            echo "url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commits/${VERSION}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Previous tag: ${PREVIOUS}"
+            echo "url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${PREVIOUS}...${VERSION}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: release
+        name: Create release
+        if: steps.project.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.project.outputs.version }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          CHANGELOG_URL: ${{ steps.changelog.outputs.url }}
+          MD5: ${{ steps.assets.outputs.md5 }}
+          SHA1: ${{ steps.assets.outputs.sha1 }}
+          SHA256: ${{ steps.assets.outputs.sha256 }}
+        run: |
+          cat > release-notes.md <<EOF
+          **Full Changelog**: ${CHANGELOG_URL}
+
+          ## Installation:
+
+          1. Download \`${ARTIFACT_NAME}.zip\` and extract it.
+          2. Open \`chrome://extensions/\` and enable **Developer mode**.
+          3. Click **Load unpacked** and select the extracted folder.
+
+          ## Checksums:
+
+          - MD5: ${MD5}
+          - SHA1: ${SHA1}
+          - SHA256: ${SHA256}
+          EOF
+
+          gh release create "$VERSION" release-assets/* \
+            --target "$GITHUB_SHA" \
+            --title "${REPO_NAME} - Release ${VERSION}" \
+            --notes-file release-notes.md
