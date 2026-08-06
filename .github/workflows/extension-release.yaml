@@ -16,7 +16,7 @@ permissions:
 
 env:
   NODE_VERSION: "26"
-  ARTIFACT_NAME: AniLink-Skipper
+  ARTIFACT_NAME: TabScraper
 
 jobs:
   release:
@@ -119,6 +119,8 @@ jobs:
             exit 1
           fi
 
+          # Unquoted on purpose, as with the icons above: manifest paths in
+          # this project contain no spaces, so word splitting is safe here.
           for ENTRY in $SERVICE_WORKER $POPUP; do
             if [ ! -f "staging/${ENTRY}" ]; then
               echo "::error::Entry point ${ENTRY} is missing from the package"
